@@ -1,4 +1,4 @@
 #!/bin/bash
 
-apt update -y
-apt install vnstat -y
+apt update -qq -y
+apt install -qq vnstat -y

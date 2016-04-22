@@ -18,18 +18,29 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision :shell, inline: setup_common
 
+  config.vm.define :www do |www|
+    www.vm.hostname = 'www'
+    www.vm.network 'private_network', ip: '192.168.222.50',
+                                      virtualbox__intnet: 'traffic_TO_www'
+    www.vm.provision :shell, inline: setup_www
+  end
+
   config.vm.define :traffic do |traffic|
-    traffic.vm.network 'private_network', ip: '192.168.222.50',
-                                          virtualbox__intnet: true
-    traffic.vm.provision :shell, inline: setup_traffic
+    traffic.vm.hostname = 'traffic'
+    traffic.vm.network 'private_network', ip: '192.168.222.20',
+                                          virtualbox__intnet: 'traffic_TO_www'
+    traffic.vm.network 'private_network', ip: '192.168.200.20',
+                                          virtualbox__intnet: 'switch_TO_traffic'
+    traffic.vm.provision :shell, inline: setup_switch
+    traffic.vm.synced_folder './scripts', '/home/vagrant/scripts'
+    traffic.vm.provision :shell, inline: 'chmod +x /home/vagrant/scripts/*'
   end
 
   config.vm.define :switch do |switch|
-    switch.vm.network 'private_network', ip: '192.168.222.10',
-                                         virtualbox__intnet: true
+    switch.vm.hostname = 'switch'
+    switch.vm.network 'private_network', ip: '192.168.200.10',
+                                         virtualbox__intnet: 'switch_TO_traffic'
     switch.vm.network 'private_network', ip: '192.168.50.10'
     switch.vm.provision :shell, inline: setup_switch
-    switch.vm.synced_folder './scripts', '/home/vagrant/scripts'
-    switch.vm.provision :shell, inline: 'chmod +x /home/vagrant/scripts/*'
   end
 end
