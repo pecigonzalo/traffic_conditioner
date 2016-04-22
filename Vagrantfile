@@ -8,6 +8,7 @@
 setup_traffic = File.read('scripts/setup_traffic.sh')
 setup_switch = File.read('scripts/setup_switch.sh')
 setup_common = File.read('scripts/setup_common.sh')
+setup_www = File.read('scripts/setup_www.sh')
 
 Vagrant.configure(2) do |config|
   config.vm.provision :fix_tty, type: 'shell' do |s|
@@ -18,20 +19,21 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision :shell, inline: setup_common
 
-  config.vm.define :www do |www|
-    www.vm.hostname = 'www'
-    www.vm.network 'private_network', ip: '192.168.222.50',
-                                      virtualbox__intnet: 'traffic_TO_www'
-    www.vm.provision :shell, inline: setup_www
-  end
+  # config.vm.define :www do |www|
+  #   www.vm.hostname = 'www'
+  #   www.vm.network 'private_network', ip: '192.168.222.50',
+  #                                     virtualbox__intnet: 'traffic_TO_www'
+  #   www.vm.provision :shell, inline: setup_www
+  # end
 
   config.vm.define :traffic do |traffic|
     traffic.vm.hostname = 'traffic'
-    traffic.vm.network 'private_network', ip: '192.168.222.20',
-                                          virtualbox__intnet: 'traffic_TO_www'
+    # traffic.vm.network 'private_network', ip: '192.168.222.20',
+    #                                       virtualbox__intnet: 'traffic_TO_www'
+    traffic.vm.network 'public_network', use_dhcp_assigned_default_route: true
     traffic.vm.network 'private_network', ip: '192.168.200.20',
                                           virtualbox__intnet: 'switch_TO_traffic'
-    traffic.vm.provision :shell, inline: setup_switch
+    traffic.vm.provision :shell, inline: setup_traffic
     traffic.vm.synced_folder './scripts', '/home/vagrant/scripts'
     traffic.vm.provision :shell, inline: 'chmod +x /home/vagrant/scripts/*'
   end
