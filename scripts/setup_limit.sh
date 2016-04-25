@@ -67,9 +67,9 @@ $tc class add dev $iface parent 1:1 classid 1:10 htb rate $out_prio ceil $out_sp
 $tc class add dev $iface parent 1:1 classid 1:20 htb rate $out_limit ceil $out_limit prio 2
 $tc class add dev $iface parent 1:1 classid 1:30 htb rate $out_bulk ceil $out_limit prio 3
 
-$tc qdisc add dev $iface parent 1:10 fq_codel
-$tc qdisc add dev $iface parent 1:20 fq_codel
-$tc qdisc add dev $iface parent 1:30 fq_codel
+$tc qdisc add dev $iface parent 1:10 fq_codel limit 1000 ecn
+$tc qdisc add dev $iface parent 1:20 fq_codel limit 1000 ecn
+$tc qdisc add dev $iface parent 1:30 fq_codel limit 1000 ecn
 
 echo "# Set filters"
 # TOS Minimum Delay (ssh, NOT scp) in 1:10:
@@ -86,10 +86,6 @@ $tc filter add dev $iface parent 1: protocol ip prio 12 u32 \
    match u8 0x05 0x0f at 0 \
    match u16 0x0000 0xffc0 at 2 \
    classid 1:10
-
-# rest is 'non-interactive' ie 'bulk' and ends up in 1:20
-$tc filter add dev $iface parent 1: protocol ip prio 18 u32 \
-   match ip dst 0.0.0.0/0 classid 1:20
 
 # #########
 echo '# INBOUND ( WWW -> VPNServer ) ( VPNClients -> VPNServer )'
@@ -110,9 +106,9 @@ $tc class add dev $iface_ingress parent 1:1 classid 1:10 htb rate $in_prio ceil 
 $tc class add dev $iface_ingress parent 1:1 classid 1:20 htb rate $in_limit ceil $in_limit prio 2
 $tc class add dev $iface_ingress parent 1:1 classid 1:30 htb rate $in_bulk ceil $in_limit prio 3
 
-$tc qdisc add dev $iface_ingress parent 1:10 fq_codel
-$tc qdisc add dev $iface_ingress parent 1:20 fq_codel
-$tc qdisc add dev $iface_ingress parent 1:30 fq_codel
+$tc qdisc add dev $iface_ingress parent 1:10 fq_codel limit 1000 ecn
+$tc qdisc add dev $iface_ingress parent 1:20 fq_codel limit 1000 ecn
+$tc qdisc add dev $iface_ingress parent 1:30 fq_codel limit 1000 ecn
 
 echo "# Set filters"
 # TOS Minimum Delay (ssh, NOT scp) in 1:10:
@@ -129,7 +125,3 @@ $tc filter add dev $iface_ingress parent 1: protocol ip prio 12 u32 \
    match u8 0x05 0x0f at 0 \
    match u16 0x0000 0xffc0 at 2 \
    classid 1:10
-
-# rest is 'non-interactive' ie 'bulk' and ends up in 1:20
-$tc filter add dev $iface_ingress parent 1: protocol ip prio 18 u32 \
-   match ip dst 0.0.0.0/0 classid 1:20
