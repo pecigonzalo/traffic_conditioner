@@ -44,3 +44,4 @@ EOF
 
 echo "   Setup route"
 route add 192.168.222.50/32 gw 192.168.200.20
+route add default gw 192.168.200.20
